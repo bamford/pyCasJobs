@@ -1,0 +1,16 @@
+# pyCasJobs module.
+
+This module provides a class for accessing the SDSS CasJobs server in a programmatic manner.
+
+Example usage:
+>>> import pyCasJobs
+>>> cas = pyCasJobs.CasJobs('username', 'password')
+>>> cas.import_table('mytable.csv', 'mytable')
+
+The current functionality is limited only to importing tables.
+However, it should be straightforward to implement the additional elements of CasJobs,
+such as SQL queries, in a similar manner.
+
+Requires a non-standard library module: poster, see http://atlee.ca/software/poster/.
+
+Created by Steven Bamford on Jul 15, 2010
