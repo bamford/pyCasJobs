@@ -1,4 +1,4 @@
-"""CasJobs module.
+"""pyCasJobs module.
 
 This module provides a class for accessing the SDSS CasJobs server in a programmatic manner.
 
@@ -34,7 +34,6 @@ class CasJobs:
 
     """
     def __init__(self, username, password):
-        """
         self.username = username
         self.password = password
         self.loginurl = 'http://casjobs.sdss.org/CasJobs/login.aspx'
