@@ -48,7 +48,8 @@ class CasJobs:
         self.page = response.read()
         response.close()
 
-    def import_table(self, filename, tablename, tableexists=False, format='text'):
+    def import_table(self, filename, tablename, tableexists=False, format='text',
+                     ntries=3):
         """Upload a local file into CasJobs MyDB.
     
         Note that CasJobs has rather stringent limits to the size of file
@@ -79,7 +80,15 @@ class CasJobs:
                                              'DataFormat': 3, 'sigmaBox': 5, 'DataBox': '',
                                              'httpBox': open(filename, 'rb')})
         request = urllib2.Request(self.importurl, datagen, headers)
-        response = urllib2.urlopen(request)
+        tries = 0
+        while True:
+            try:
+                tries += 1
+                response = urllib2.urlopen(request)
+                break
+            except urllib2.URLError:
+                if tries > ntries:
+                    raise
         self.page = response.read()
         response.close()
 
