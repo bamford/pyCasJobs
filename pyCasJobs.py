@@ -1,6 +1,11 @@
 """pyCasJobs module.
 
-This module provides a class for accessing the SDSS CasJobs server in a programmatic manner.
+This module provides a class for accessing the SDSS CasJobs server in
+a programmatic manner.
+
+Now discovered the method used (pretending to be a real user, storing
+cookies) is unnecessary as CasJobs provides an API.
+E.g., see http://casjobs.sdss.org/CasJobs/services/jobs.asmx?op=UploadData
 
 Example usage:
 >>> import pyCasJobs
