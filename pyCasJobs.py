@@ -24,8 +24,6 @@ Created on Jul 15, 2010
 """
 
 import urllib2, urllib, cookielib
-from poster.encode import multipart_encode
-import poster.streaminghttp
 
 class CasJobs:
     """Programmatic access to the SDSS CasJobs server.
@@ -37,25 +35,31 @@ class CasJobs:
     username -- CasJobs username
     password -- CasJobs password
 
-    """
+    """    
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.loginurl = 'http://casjobs.sdss.org/CasJobs/login.aspx'
-        self.importurl = 'http://casjobs.sdss.org/CasJobs/TableImport.aspx'
-        opener = poster.streaminghttp.register_openers()
-        opener.add_handler(urllib2.HTTPCookieProcessor(cookielib.CookieJar()))
-        self.login()
+        self.result = None
+        self.apiurl = 'http://casjobs.sdss.org/CasJobs/services/jobs.asmx/'
 
-    def login(self):
-        params = urllib.urlencode({'userid': self.username, 'password': self.password})
-        response = urllib2.urlopen(self.loginurl, params)
-        self.page = response.read()
+    def quick_query(self, query, context='MYDB', name='Quick query from pyCasJobs'):
+        """Execute a synchonous quick query on CasJobs.
+
+        Keyword arguments:
+        query -- Query to run
+        context -- Context of job, e.g. MYDB
+        name -- Optional identifier of job
+        
+        """
+        data = urllib.urlencode({'wsid': self.username, 'pw': self.password, 'qry': query,
+                                 'context': context, 'taskname': name,
+                                 'isSystem': 'false'})
+        response = urllib2.urlopen(self.apiurl+'ExecuteQuickJob', data)
+        self.result = response.read()
         response.close()
-
-    def import_table(self, filename, tablename, tableexists=False, format='text',
-                     ntries=3):
-        """Upload a local file into CasJobs MyDB.
+        
+    def import_table(self, filename, tablename, tableexists=False):
+        """Upload a local CSV file into CasJobs MyDB.
     
         Note that CasJobs has rather stringent limits to the size of file
         which can be uploaded.
@@ -64,38 +68,16 @@ class CasJobs:
         filename -- filename of the table to upload
         tablename -- name of the table to create/append to in CasJobs MyDB
         tableexists -- if 'False' create a new table, if 'True' append to existing table
-        format -- 'text': space/comma/tab separated text file
-                  'votable': XML VOTable
-                  'dataset': MS DataSet XML
 
         """
-        if tableexists:
-            tableTypeDDL = 1
-        else:
-            tableTypeDDL = 0
-        if format == 'text':
-            DataType = 0
-        elif format == 'votable':
-            DataType = 1
-        elif format == 'dataset':
-            DataType = 2
-        datagen, headers = multipart_encode({'tableTypeDDL': tableTypeDDL,
-                                             'NameBox': tablename, 'tnameDDL': tablename,
-                                             'DataType': DataType, 'importType': 1,
-                                             'DataFormat': 3, 'sigmaBox': 5, 'DataBox': '',
-                                             'httpBox': open(filename, 'rb')})
-        request = urllib2.Request(self.importurl, datagen, headers)
-        tries = 0
-        while True:
-            try:
-                tries += 1
-                response = urllib2.urlopen(request)
-                break
-            except urllib2.URLError:
-                if tries > ntries:
-                    raise
-        self.page = response.read()
+        table = ''.join(open(filename, 'r').readlines())
+        data = urllib.urlencode({'wsid': self.username, 'pw': self.password,
+                                 'tableName': tablename, 'data': table,
+                                 'tableExists': tableexists})
+        response = urllib2.urlopen(self.apiurl+'UploadData', data)
+        self.result = response.read()
         response.close()
+
 
 if __name__ == '__main__':
     pass
